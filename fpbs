@@ -3,7 +3,7 @@
 set -e
 date=$(date '+%H:%M:%S-%d-%m-%Y')
 backup=fedora-installed-packages-$date
-pname="Fedora Packages Backup System"
+pname="Fedora Packages Backup System v1.0.1 by Alex Free"
 echo $pname
 if [ "$1" = "-b" ]; then
     echo "Backup Mode"
@@ -15,9 +15,9 @@ if [ "$1" = "-b" ]; then
     rpm -qa | xargs -n1 dnf download
     test=$(wc -l)
     if [ $test == $count ]; then
-        echo Successfully archived all $count packages installed as of $date
+        echo "Successfully archived all $count packages installed as of $date"
     else
-        echo Error: Not all packages were archived
+        echo "Error: Not all packages were archived"
         exit 1
      fi
 elif [ "$1" = "-r" ]; then
@@ -27,7 +27,7 @@ elif [ "$1" = "-r" ]; then
 	    exit 1
     fi
     if [ "$#" -ne 2 ]; then
-        echo "Restore Mode requires the second argument to be the backup directory" 
+        echo "$0 -r requires the last argument to be the backup directory" 
         exit 1
     fi
 
