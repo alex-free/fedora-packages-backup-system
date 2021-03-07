@@ -1,10 +1,15 @@
 #!/bin/bash
 # Released into the Public Domain
 set -e
-date=$(date '+%H:%M:%S-%d-%m-%Y')
+date=$(date '+%H:%M:%S-%m-%d-%Y')
 backup=fedora-installed-packages-$date
-pname="Fedora Packages Backup System v1.0.1 by Alex Free"
-echo $pname
+echo "Fedora Packages Backup System v1.0.2 by Alex Free"
+
+if [[ $EUID -ne 0 ]]; then
+    echo "You need to run fpbs as root or with sudo to continue"
+	exit 1
+fi
+
 if [ "$1" = "-b" ]; then
     echo "Backup Mode"
     count=$(rpm -qa | wc -l)
@@ -12,40 +17,28 @@ if [ "$1" = "-b" ]; then
     rm -rf $backup
     mkdir $backup
     cd $backup
-    rpm -qa | xargs -n1 dnf download
-    test=$(wc -l)
+    rpm -qa | xargs -n1 dnf reinstall --assumeyes --downloadonly --destdir . 
+    test=$(ls | wc -l)
     if [ $test == $count ]; then
-        echo "Successfully archived all $count packages installed as of $date"
+        echo "Successfully archived all $count packages installed as of $date!"
     else
-        echo "Error: Not all packages were archived"
+        echo "Warning: Not all packages were archived. $count packages are installed on your system, but only $test packages were downloadable and found in the backup"
         exit 1
      fi
 elif [ "$1" = "-r" ]; then
     echo "Restore Mode"
-    if [[ $EUID -ne 0 ]]; then
-	    echo "To install all packages from an existing backup directory you need to run $name as root or with sudo"
-	    exit 1
-    fi
-    if [ "$#" -ne 2 ]; then
-        echo "$0 -r requires the last argument to be the backup directory" 
-        exit 1
-    fi
-
     if [ -d "$2" ]; then
-        if [ "ls *.{rpm,RPM}" == 0 ]; then
-            echo "Found .rpm or .RPM files in $2..."
-        else
-            echo "Error: could not find any .rpm or .RPM files in $2"
-            exit 1
-        fi
-        test=$(wc -l)
+        cd "$2"
+        createrepo_c .
+        test=$(ls | wc -l)
         echo "Installing $test local packages in $2..."
-         ls | xargs -n1 dnf install
+        ls | xargs -n1 dnf --disablerepo=* --repofrompath local,. install --assumeyes
+        echo "Restore complete!"
     else
         echo "Can not find the backup directory: $2"
     fi
 else
     echo "Usage:"
-    echo "$0 -b       Backup all installed packages in the current Fedora installation"
-    echo "$0 -r <backupdirectory>      Restore all packages contained in a backup directory made previously with $0 -b"
+    echo "fpbs -b       Backup all installed packages in the current Fedora installation"
+    echo "fpbs -r <backupdirectory>      Restore all packages contained in a backup directory made previously with $0 -b"
 fi
