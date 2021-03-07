@@ -11,11 +11,16 @@ To install all packages contained in a backup directory created by the 'fpbs -b'
 This is free and unencumbered software released into the public domain, see 'unlicense.txt'.
 
 =Changelog
+-v1.0.3(3/7/2021)
+For packages that are not archivable (part of the OS, not installed from a currently available repository, installed manually) Fedora Packages Backup System now reviews the names of these packages.
+
 -v1.0.2 (3/7/2021)
 Download function now uses use dnf reinstall in download-only mode instead of dnf download to improve UX and functionality (backup function now also requires sudo however).
 Restore function now creates and uses a local dnf repo in offline only mode, assumes yes.
+
 -v1.0.1
 More verbose error for wrong number of args in restore mode.
 Consistent echo format.
 Displays version number on execution.
+
 -v1.0

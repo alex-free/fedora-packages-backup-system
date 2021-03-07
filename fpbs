@@ -3,7 +3,7 @@
 set -e
 date=$(date '+%H:%M:%S-%m-%d-%Y')
 backup=fedora-installed-packages-$date
-echo "Fedora Packages Backup System v1.0.2 by Alex Free"
+echo "Fedora Packages Backup System v1.0.3 by Alex Free"
 
 if [[ $EUID -ne 0 ]]; then
     echo "You need to run fpbs as root or with sudo to continue"
@@ -22,8 +22,14 @@ if [ "$1" = "-b" ]; then
     if [ $test == $count ]; then
         echo "Successfully archived all $count packages installed as of $date!"
     else
-        echo "Warning: Not all packages were archived. $count packages are installed on your system, but only $test packages were downloadable and found in the backup"
-        exit 1
+    compare_installed=$(rpm -qa | sort -d)
+    compare_archived=$(ls -1 *.rpm | sed -e 's/\.rpm$//')
+    echo "$count packages are installed on your system."
+    echo "$test packages were downloadable and have been saved to the $backup directory."
+echo "Some packages were not able to be archived. These packages may be part of the OS, not installed from a currently available dnf repository, or installed manually."
+    echo "Press any key to review these unsaved packages"
+    read -p ""
+    diff <(echo "$compare_installed") <(echo "$compare_archived")
      fi
 elif [ "$1" = "-r" ]; then
     echo "Restore Mode"
